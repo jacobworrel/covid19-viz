@@ -4,11 +4,11 @@ import csvToJson from 'csvtojson';
 import * as R from 'ramda';
 import {LineChart} from './LineChart';
 import Select from 'react-select';
+import {makeDateList, makeRegionList} from './transformer';
 
 const confirmedUrl =
   'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv';
 
-const makeOption = x => ({value: x, label: x});
 export default function App() {
   const [data, setData] = useState([]);
   const [selectedRegionList, setSelectedRegionList] = useState([]);
@@ -23,19 +23,8 @@ export default function App() {
     });
   }, []);
 
-  const dateList = R.pipe(
-    R.head,
-    R.defaultTo([]),
-    R.drop(4),
-    R.unnest,
-  )(data);
-  const regionList = R.pipe(
-    R.drop(1),
-    R.map(([region, country]) =>
-      region === '' ? makeOption(country) : makeOption(region),
-    ),
-    R.sortBy(R.prop('value')),
-  )(data);
+  const dateList = makeDateList(data);
+  const regionList = makeRegionList(data);
   const lineChartData = useMemo(() => {
     const valueList = R.pluck('value')(selectedRegionList);
     return R.pipe(
@@ -57,14 +46,16 @@ export default function App() {
 
   return (
     <div className="App">
-      <Select
-        options={regionList}
-        isMulti
-        onChange={selectedList =>
-          setSelectedRegionList(R.defaultTo([])(selectedList))
-        }
-        placeholder="Select Region/Country"
-      />
+      <div style={{ width: 300 }}>
+        <Select
+          options={regionList}
+          isMulti
+          onChange={selectedList =>
+            setSelectedRegionList(R.defaultTo([])(selectedList))
+          }
+          placeholder="Select Region/Country"
+        />
+      </div>
       <LineChart data={lineChartData} categories={dateList}/>
     </div>
   );
