@@ -9,14 +9,17 @@ import {makeDateList, makeRegionList, makeLineChartData} from './transformer';
 
 const reportList = [
   {
+    id: 'confirmed',
     url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
     title: 'Confirmed Cases',
   },
   {
+    id: 'deaths',
     url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',
     title: 'Deaths',
   },
   {
+    id: 'recovered',
     url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv',
     title: 'Recovered Cases',
   },
@@ -25,6 +28,7 @@ const reportList = [
 export default function App() {
   const [data, setData] = useState([]);
   const [selectedRegionList, setSelectedRegionList] = useState([]);
+  const [metricById, setMetricById] = useState({ confirmed: true, deaths: false, recovered: false });
   useEffect(() => {
     axios.get(reportList[0].url).then(({data: csvStr}) => {
       csvToJson({
@@ -52,13 +56,24 @@ export default function App() {
             placeholder="Select Region/Country"
           />
         </div>
+        {reportList.map(({ title, id }) => (
+          <Checkbox
+            key={id}
+            id={id}
+            name={title}
+            isChecked={metricById[id]}
+            onChange={() => setMetricById((prevMetricById => ({ ...prevMetricById, [id]: !prevMetricById[id] })))}
+          />
+        ))}
       </div>
       {R.not(R.isEmpty(selectedRegionList)) && (
-        reportList.map(({url, title }) => (
+        reportList.map(({id, url, title }) => (
           <Report
+            key={id}
             selectedRegionList={selectedRegionList}
             url={url}
             title={title}
+            isShown={metricById[id]}
           />
         ))
       )}
@@ -66,7 +81,7 @@ export default function App() {
   );
 }
 
-function Report ({ selectedRegionList, url, title }) {
+function Report ({ selectedRegionList, url, title, isShown }) {
   const [data, setData] = useState([]);
   useEffect(() => {
     axios.get(url).then(({data: csvStr}) => {
@@ -79,6 +94,10 @@ function Report ({ selectedRegionList, url, title }) {
     });
   }, []);
 
+  if (!isShown) {
+    return null;
+  }
+
   const dateList = makeDateList(data);
   const lineChartData = makeLineChartData({ data, selectedRegionList });
   return (
@@ -88,6 +107,15 @@ function Report ({ selectedRegionList, url, title }) {
         data={lineChartData}
         categories={dateList}
       />
+    </div>
+  );
+}
+
+function Checkbox ({ id,  name, isChecked, onChange }) {
+  return (
+    <div>
+      <input type="checkbox" id={id} name={name} checked={isChecked} onChange={onChange} />
+      <label htmlFor={id}>{name}</label>
     </div>
   );
 }
