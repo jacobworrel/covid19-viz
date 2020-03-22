@@ -7,8 +7,9 @@ import {LineChart} from './LineChart';
 import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData} from './transformer';
 
-const confirmedUrl =
-  'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv';
+const confirmedUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv';
+const deathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv';
+const recoveredUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv';
 
 export default function App() {
   const [data, setData] = useState([]);
@@ -24,12 +25,11 @@ export default function App() {
     });
   }, []);
 
-  const dateList = makeDateList(data);
   const regionList = makeRegionList(data);
-  const lineChartData = useMemo(() => makeLineChartData({ data, selectedRegionList }), [data, selectedRegionList])
 
   return (
     <div className="app l-column">
+      <div className="section l-center">COVID-19 Data Explorer</div>
       <div className="section l-center">
         <div style={{ width: 300 }}>
           <Select
@@ -43,12 +43,53 @@ export default function App() {
         </div>
       </div>
       {R.not(R.isEmpty(selectedRegionList)) && (
-        <LineChart
+        <Report
+          selectedRegionList={selectedRegionList}
+          url={confirmedUrl}
           title="Confirmed Cases"
-          data={lineChartData}
-          categories={dateList}
+        />
+      )}
+
+      {R.not(R.isEmpty(selectedRegionList)) && (
+        <Report
+          selectedRegionList={selectedRegionList}
+          url={deathsUrl}
+          title="Deaths"
+        />
+      )}
+
+      {R.not(R.isEmpty(selectedRegionList)) && (
+        <Report
+          selectedRegionList={selectedRegionList}
+          url={recoveredUrl}
+          title="Recovered Cases"
         />
       )}
     </div>
+  );
+}
+
+function Report ({ selectedRegionList, url, title }) {
+  const [data, setData] = useState([]);
+  useEffect(() => {
+    axios.get(url).then(({data: csvStr}) => {
+      csvToJson({
+        noheader: true,
+        output: 'csv',
+      })
+        .fromString(csvStr)
+        .then(data => setData(data));
+    });
+  }, []);
+
+  const dateList = makeDateList(data);
+  // const lineChartData = useMemo(() => makeLineChartData({ data, selectedRegionList }), [data, selectedRegionList])
+  const lineChartData = makeLineChartData({ data, selectedRegionList });
+  return (
+    <LineChart
+      title={title}
+      data={lineChartData}
+      categories={dateList}
+    />
   );
 }

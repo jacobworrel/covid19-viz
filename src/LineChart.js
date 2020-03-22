@@ -9,11 +9,6 @@ const defaultOptions = {
   credits: {
     enabled: false,
   },
-  yAxis: {
-    title: {
-      text: 'Confirmed Cases',
-    },
-  },
   legend: {
     layout: 'vertical',
     align: 'right',
@@ -37,6 +32,11 @@ export function LineChart({title, data, categories}) {
         series: data,
         xAxis: {
           categories,
+        },
+        yAxis: {
+          title: {
+            text: title,
+          },
         },
         title: {
           text: title,
