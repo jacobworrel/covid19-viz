@@ -7,15 +7,26 @@ import {LineChart} from './LineChart';
 import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData} from './transformer';
 
-const confirmedUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv';
-const deathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv';
-const recoveredUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv';
+const reportList = [
+  {
+    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
+    title: 'Confirmed Cases',
+  },
+  {
+    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',
+    title: 'Deaths',
+  },
+  {
+    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv',
+    title: 'Recovered Cases',
+  },
+]
 
 export default function App() {
   const [data, setData] = useState([]);
   const [selectedRegionList, setSelectedRegionList] = useState([]);
   useEffect(() => {
-    axios.get(confirmedUrl).then(({data: csvStr}) => {
+    axios.get(reportList[0].url).then(({data: csvStr}) => {
       csvToJson({
         noheader: true,
         output: 'csv',
@@ -43,27 +54,13 @@ export default function App() {
         </div>
       </div>
       {R.not(R.isEmpty(selectedRegionList)) && (
-        <Report
-          selectedRegionList={selectedRegionList}
-          url={confirmedUrl}
-          title="Confirmed Cases"
-        />
-      )}
-
-      {R.not(R.isEmpty(selectedRegionList)) && (
-        <Report
-          selectedRegionList={selectedRegionList}
-          url={deathsUrl}
-          title="Deaths"
-        />
-      )}
-
-      {R.not(R.isEmpty(selectedRegionList)) && (
-        <Report
-          selectedRegionList={selectedRegionList}
-          url={recoveredUrl}
-          title="Recovered Cases"
-        />
+        reportList.map(({url, title }) => (
+          <Report
+            selectedRegionList={selectedRegionList}
+            url={url}
+            title={title}
+          />
+        ))
       )}
     </div>
   );
@@ -83,13 +80,14 @@ function Report ({ selectedRegionList, url, title }) {
   }, []);
 
   const dateList = makeDateList(data);
-  // const lineChartData = useMemo(() => makeLineChartData({ data, selectedRegionList }), [data, selectedRegionList])
   const lineChartData = makeLineChartData({ data, selectedRegionList });
   return (
-    <LineChart
-      title={title}
-      data={lineChartData}
-      categories={dateList}
-    />
+    <div className="chart">
+      <LineChart
+        title={title}
+        data={lineChartData}
+        categories={dateList}
+      />
+    </div>
   );
 }

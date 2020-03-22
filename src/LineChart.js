@@ -9,11 +9,6 @@ const defaultOptions = {
   credits: {
     enabled: false,
   },
-  legend: {
-    layout: 'vertical',
-    align: 'right',
-    verticalAlign: 'middle',
-  },
   plotOptions: {
     series: {
       label: {
