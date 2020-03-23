@@ -44,7 +44,8 @@ export default function App() {
 
   return (
     <div className="app l-column">
-      <div className="section l-center">COVID-19 Data Explorer</div>
+      {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
+      <h1 className="section l-center">COVID-19 Data Explorer</h1>
       <div className="section l-center">
         <div style={{ width: 300 }}>
           <Select
@@ -56,15 +57,17 @@ export default function App() {
             placeholder="Select Region/Country"
           />
         </div>
-        {reportList.map(({ title, id }) => (
-          <Checkbox
-            key={id}
-            id={id}
-            name={title}
-            isChecked={metricById[id]}
-            onChange={() => setMetricById((prevMetricById => ({ ...prevMetricById, [id]: !prevMetricById[id] })))}
-          />
-        ))}
+        <div className="l-flex" style={{ marginLeft: 30 }}>
+          {reportList.map(({ title, id }) => (
+            <Checkbox
+              key={id}
+              id={id}
+              name={title}
+              isChecked={metricById[id]}
+              onChange={() => setMetricById((prevMetricById => ({ ...prevMetricById, [id]: !prevMetricById[id] })))}
+            />
+          ))}
+        </div>
       </div>
       {R.not(R.isEmpty(selectedRegionList)) && (
         reportList.map(({id, url, title }) => (
@@ -79,6 +82,13 @@ export default function App() {
       )}
     </div>
   );
+}
+
+export function calcGrowthRate (past, present, n) {
+  if (past === 0) {
+    return null;
+  }
+  return ((Math.pow(present / past, 1 / n) - 1) * 100).toFixed(2);
 }
 
 function Report ({ selectedRegionList, url, title, isShown }) {
@@ -100,8 +110,26 @@ function Report ({ selectedRegionList, url, title, isShown }) {
 
   const dateList = makeDateList(data);
   const lineChartData = makeLineChartData({ data, selectedRegionList });
+
+  const growthDayRange = 10;
+  const growth = R.ifElse(
+    () => R.and(R.not(R.isEmpty(data)), R.pipe(R.length, R.equals(1))(selectedRegionList)),
+    R.pipe(
+      R.head,
+      R.prop('data'),
+      R.takeLast(growthDayRange),
+      (data) => {
+        const past = R.head(data);
+        const present = R.last(data);
+        return calcGrowthRate(past, present, growthDayRange)
+      },
+    ),
+    () => null
+  )(lineChartData);
   return (
     <div className="chart">
+      <h2>{title}</h2>
+      { growth && (<h4>Avg Daily Growth Rate: {growth}% (last {growthDayRange} days)</h4>)}
       <LineChart
         title={title}
         data={lineChartData}
@@ -113,7 +141,7 @@ function Report ({ selectedRegionList, url, title, isShown }) {
 
 function Checkbox ({ id,  name, isChecked, onChange }) {
   return (
-    <div>
+    <div className="checkbox">
       <input type="checkbox" id={id} name={name} checked={isChecked} onChange={onChange} />
       <label htmlFor={id}>{name}</label>
     </div>

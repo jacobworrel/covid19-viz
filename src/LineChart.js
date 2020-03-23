@@ -33,9 +33,6 @@ export function LineChart({title, data, categories}) {
             text: title,
           },
         },
-        title: {
-          text: title,
-        },
       }}
     />
   );
