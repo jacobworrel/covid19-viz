@@ -6,6 +6,7 @@ import * as R from 'ramda';
 import {LineChart} from './LineChart';
 import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData} from './transformer';
+import CounterInput from 'react-counter-input';
 
 const reportList = [
   {
@@ -93,6 +94,8 @@ export function calcGrowthRate (past, present, n) {
 
 function Report ({ selectedRegionList, url, title, isShown }) {
   const [data, setData] = useState([]);
+  const [growthRange, setGrowthRange] = useState(7);
+
   useEffect(() => {
     axios.get(url).then(({data: csvStr}) => {
       csvToJson({
@@ -111,17 +114,16 @@ function Report ({ selectedRegionList, url, title, isShown }) {
   const dateList = makeDateList(data);
   const lineChartData = makeLineChartData({ data, selectedRegionList });
 
-  const growthDayRange = 10;
   const growth = R.ifElse(
     () => R.and(R.not(R.isEmpty(data)), R.pipe(R.length, R.equals(1))(selectedRegionList)),
     R.pipe(
       R.head,
       R.prop('data'),
-      R.takeLast(growthDayRange),
+      R.takeLast(growthRange),
       (data) => {
         const past = R.head(data);
         const present = R.last(data);
-        return calcGrowthRate(past, present, growthDayRange)
+        return calcGrowthRate(past, present, growthRange)
       },
     ),
     () => null
@@ -129,7 +131,15 @@ function Report ({ selectedRegionList, url, title, isShown }) {
   return (
     <div className="chart">
       <h2>{title}</h2>
-      { growth && (<h4>Avg Daily Growth Rate: {growth}% (last {growthDayRange} days)</h4>)}
+      { growth && (
+        <div>
+          <h4>Avg Daily Growth Rate: {growth}%</h4>
+          <div className="l-vCenter">
+            <h4>Range of days:</h4>
+            <CounterInput count={growthRange} onCountChange={count => setGrowthRange(count)} />
+          </div>
+        </div>
+      )}
       <LineChart
         title={title}
         data={lineChartData}
