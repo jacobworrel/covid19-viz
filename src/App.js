@@ -11,20 +11,15 @@ import CounterInput from 'react-counter-input';
 const reportList = [
   {
     id: 'confirmed',
-    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
+    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv',
     title: 'Confirmed Cases',
   },
   {
     id: 'deaths',
-    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',
+    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv',
     title: 'Deaths',
   },
-  {
-    id: 'recovered',
-    url: 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv',
-    title: 'Recovered Cases',
-  },
-]
+];
 
 export default function App() {
   const [data, setData] = useState([]);
