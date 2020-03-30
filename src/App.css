@@ -57,3 +57,10 @@
   align-items: baseline;
 }
 
+@media screen and ( max-width: 700px ) {
+  .widget {
+    flex-direction: column;
+    justify-content: space-between;
+    height: 180px;
+  }
+}

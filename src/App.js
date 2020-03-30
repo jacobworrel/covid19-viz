@@ -38,8 +38,8 @@ export default function App() {
     <div className="app l-column">
       <h1 className="section l-center">COVID-19 Data Explorer</h1>
       {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
-      <div className="section l-center">
-        <div style={{ width: selectWidth }}>
+      <div className="section l-center widget">
+        <div style={{ width: selectWidth, marginLeft: widgetMarginLeft }}>
           <Select
             options={makeRegionList(globalCasesData)}
             isMulti
