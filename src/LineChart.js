@@ -16,6 +16,9 @@ const defaultOptions = {
       },
     },
   },
+  chart: {
+    zoomType: 'xy',
+  }
 };
 
 export function LineChart({title, data, categories}) {

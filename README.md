@@ -1,6 +1,8 @@
 # COVID-19 Data Explorer
 
-COVID-19 time series visualization.
+COVID-19 time series visualization. Currently deployed [here](https://goofy-agnesi-0d5e9a.netlify.com).
+
+## Sources
 
 Global data from [Johns Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19).
 
