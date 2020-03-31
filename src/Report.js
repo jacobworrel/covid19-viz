@@ -6,7 +6,7 @@ import {calcGrowthRate} from './calc';
 import { isNotEmpty, isLength1 } from './transformer';
 
 export function Report ({ selectedPlaceList, data: { chartData, dateList } = {}, title }) {
-  const [growthRange, setGrowthRange] = useState(7);
+  const [growthRange, setGrowthRange] = useState(2);
 
   const growth = R.ifElse(
     () => R.and(isNotEmpty(chartData), isLength1(selectedPlaceList)),

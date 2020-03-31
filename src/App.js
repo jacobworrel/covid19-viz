@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import './App.css';
 import * as R from 'ramda';
 import {Report} from './Report';
+import {PieChart} from './PieChart';
 import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeOptions, makeCountyOptions, groupByState, groupByCounty, isOnlyUSA, isNotEmpty, parseRow} from './transformer';
 import { Checkbox } from './Checkbox';
@@ -35,7 +36,7 @@ export default function App() {
   const byCounty = groupByCounty(countyData);
 
   return (
-    <div className="app l-column">
+    <div className="app l-column" style={{ margin: '0px 200px' }}>
       <h1 className="section l-center">COVID-19 Data Explorer</h1>
       {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
       <div className="section l-center widget">
@@ -126,64 +127,85 @@ export default function App() {
             deaths: globalDeathsData,
           };
           return (
-            <Report
-              key={selectedMetric}
-              selectedMetric={selectedMetric}
-              data={R.pipe(
-                R.ifElse(
-                  R.isNil,
-                  () => {
-                    const data = globalData[selectedMetric];
-                    return {
-                      chartData: makeLineChartData({ data, selectedRegionList: selectedCountryList }),
-                      dateList: makeDateList(data),
-                    }
-                  },
-                  R.pipe(
-                    byPlace => {
-                      const data = R.pipe(
-                        R.pickBy((val, key) => R.includes(key)(R.pluck('value')(selectedPlaceList))),
-                        R.values,
-                        R.map(x => R.map(parseRow)(x))
-                      )(byPlace);
-                      const dateList = R.pipe(R.reduce(R.maxBy(R.length), []), R.pluck('date'))(data);
-                      const dateListLength = R.length(dateList);
-                      const chartData = R.map(
-                        x => {
-                          const name = R.pipe(
-                            R.head,
-                            R.defaultTo({}),
-                            R.prop('place')
-                          )(x);
-                          return {
-                            data: R.pipe(
-                              R.when(
-                                R.pipe(
-                                  R.length,
-                                  R.lt(R.__, dateListLength),
-                                ),
-                                list => {
-                                  const diff = dateListLength - R.length(list);
-                                  return R.concat(R.times(R.always(0))(diff), list);
-                                }
-                              ),
-                              R.pluck(selectedMetric), R.map(parseInt)
-                            )(x),
-                            name,
-                          };
-                        }
-                      )(data);
+            <React.Fragment>
+              <Report
+                key={selectedMetric}
+                selectedMetric={selectedMetric}
+                data={R.pipe(
+                  R.ifElse(
+                    R.isNil,
+                    () => {
+                      const data = globalData[selectedMetric];
                       return {
-                        chartData,
-                        dateList,
+                        chartData: makeLineChartData({ data, selectedRegionList: selectedCountryList }),
+                        dateList: makeDateList(data),
                       }
-                    }
-                  )
-                ),
-              )(byPlace)}
-              title={titleByMetricId[selectedMetric]}
-              selectedPlaceList={selectedPlaceList}
-            />
+                    },
+                    R.pipe(
+                      byPlace => {
+                        const data = R.pipe(
+                          R.pickBy((val, key) => R.includes(key)(R.pluck('value')(selectedPlaceList))),
+                          R.values,
+                          R.map(x => R.map(parseRow)(x))
+                        )(byPlace);
+                        const dateList = R.pipe(R.reduce(R.maxBy(R.length), []), R.pluck('date'))(data);
+                        const dateListLength = R.length(dateList);
+                        const chartData = R.map(
+                          x => {
+                            const name = R.pipe(
+                              R.head,
+                              R.defaultTo({}),
+                              R.prop('place')
+                            )(x);
+                            return {
+                              data: R.pipe(
+                                R.when(
+                                  R.pipe(
+                                    R.length,
+                                    R.lt(R.__, dateListLength),
+                                  ),
+                                  list => {
+                                    const diff = dateListLength - R.length(list);
+                                    return R.concat(R.times(R.always(0))(diff), list);
+                                  }
+                                ),
+                                R.pluck(selectedMetric), R.map(parseInt)
+                              )(x),
+                              name,
+                            };
+                          }
+                        )(data);
+                        return {
+                          chartData,
+                          dateList,
+                        }
+                      }
+                    )
+                  ),
+                )(byPlace)}
+                title={titleByMetricId[selectedMetric]}
+                selectedPlaceList={selectedPlaceList}
+              />
+              {isOnlyUSA(selectedCountryList) && (
+                <div className="l-flex l-hCenter">
+                  <PieChart
+                    metricTitle={titleByMetricId[selectedMetric]}
+                    data={R.pipe(
+                      R.map(
+                        R.pipe(
+                          R.last,
+                          ([date, state, fips, cases, deaths]) => ({ state, cases, deaths }),
+                          (x) => ({ name: x.state, y: parseInt(x[selectedMetric]) })
+                        )
+                      ),
+                      R.values,
+                      R.sort(R.descend(R.prop('y'))),
+                      R.take(10),
+                    )(byState)}
+                  />
+                </div>
+              )}
+            </React.Fragment>
           )
         })
       )(metricById)}
