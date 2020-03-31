@@ -36,7 +36,7 @@ export default function App() {
   const byCounty = groupByCounty(countyData);
 
   return (
-    <div className="app l-column" style={{ margin: '0px 200px' }}>
+    <div className="app l-column">
       <h1 className="section l-center">COVID-19 Data Explorer</h1>
       {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
       <div className="section l-center widget">

@@ -14,8 +14,6 @@ const defaultOptions = {
     },
   },
   chart: {
-    height: 800,
-    width: 800,
     type: 'pie',
     zoomType: 'xy',
   }
