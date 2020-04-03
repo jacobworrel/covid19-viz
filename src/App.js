@@ -7,6 +7,7 @@ import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeOptions, makeCountyOptions, groupByState, groupByCounty, isOnlyUSA, isNotEmpty, parseRow} from './transformer';
 import { Checkbox } from './Checkbox';
 import { useFetchCSV } from './customHook';
+import { MultiSelect } from './MultiSelect';
 
 
 const selectWidth = 250;
@@ -21,7 +22,7 @@ export default function App() {
   const [metricById, setMetricById] = useState({ cases: true, deaths: false });
 
   // GLOBAL
-  const [selectedCountryList, setSelectedRegionList] = useState([makeSelectOption('US')]);
+  const [selectedCountryList, setSelectedCountryList] = useState([makeSelectOption('US')]);
   const globalCasesData = useFetchCSV('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv');
   const globalDeathsData = useFetchCSV('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv');
 
@@ -35,66 +36,54 @@ export default function App() {
   const countyData= useFetchCSV('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv');
   const byCounty = groupByCounty(countyData);
 
+  const selectCountry = R.pipe(
+    R.when(
+      R.isEmpty,
+      R.tap(() => {
+        setSelectedStateList([]);
+        setSelectedCountyList([]);
+      }),
+    ),
+    selectedList => setSelectedCountryList(selectedList)
+  );
+
   return (
     <div className="app l-column">
       <h1 className="section l-center">COVID-19 Data Explorer</h1>
       {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
       <div className="section l-center widget">
-        <div style={{ width: selectWidth, marginLeft: widgetMarginLeft }}>
-          <Select
-            options={makeRegionList(globalCasesData)}
-            isMulti
+        <MultiSelect
+          options={makeRegionList(globalCasesData)}
+          onChange={selectCountry}
+          placeholder="Select Region/Country"
+          value={selectedCountryList}
+        />
+        {isOnlyUSA(selectedCountryList) && (
+          <MultiSelect
+            options={makeOptions(byState)}
             onChange={R.pipe(
-              R.defaultTo([]),
               R.when(
                 R.isEmpty,
-                R.tap(() => {
-                  setSelectedStateList([]);
-                  setSelectedCountyList([]);
-                }),
+                R.tap(() => setSelectedCountyList([])),
               ),
-              selectedList => setSelectedRegionList(selectedList)
+              selectedList => setSelectedStateList(selectedList)
             )}
-            placeholder="Select Region/Country"
-            value={selectedCountryList}
+            placeholder="Select State"
+            value={selectedStateList}
           />
-        </div>
-        {isOnlyUSA(selectedCountryList) && (
-          <div style={{ width: selectWidth, marginLeft: widgetMarginLeft }} >
-            <Select
-              options={makeOptions(byState)}
-              isMulti
-              onChange={
-                R.pipe(
-                  R.defaultTo([]),
-                  R.when(
-                    R.isEmpty,
-                    R.tap(() => setSelectedCountyList([])),
-                  ),
-                  selectedList => setSelectedStateList(selectedList)
-                )
-              }
-              placeholder="Select State"
-              value={selectedStateList}
-            />
-          </div>
         )}
         {isOnlyUSA(selectedCountryList) && isNotEmpty(selectedStateList) && (
-          <div style={{ width: selectWidth, marginLeft: widgetMarginLeft }}>
-            <Select
-              options={R.pipe(
-                R.filter(R.any(([date, county, state]) => R.includes(state)(R.pluck('value')(selectedStateList)))),
-                makeCountyOptions,
-              )(byCounty)
-              }
-              isMulti
-              onChange={selectedList =>
-                setSelectedCountyList(R.defaultTo([])(selectedList))
-              }
-              placeholder="Select County"
-              value={selectedCountyList}
-            />
-          </div>
+          <MultiSelect
+            options={R.pipe(
+              R.filter(R.any(([date, county, state]) => R.includes(state)(R.pluck('value')(selectedStateList)))),
+              makeCountyOptions,
+            )(byCounty)}
+            onChange={R.pipe(
+              selectedList => setSelectedCountyList(selectedList)
+            )}
+            placeholder="Select County"
+            value={selectedCountyList}
+          />
         )}
         <div className="l-flex" style={{ marginLeft: widgetMarginLeft }}>
           {R.pipe(
