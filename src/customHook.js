@@ -13,7 +13,7 @@ export function useFetchCSV (url) {
         .fromString(csvStr)
         .then(data => setData(data));
     });
-  }, []);
+  }, [url]);
 
   return data;
 }

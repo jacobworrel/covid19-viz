@@ -3,14 +3,11 @@ import './App.css';
 import * as R from 'ramda';
 import {Report} from './Report';
 import {PieChart} from './PieChart';
-import Select from 'react-select';
 import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeOptions, makeCountyOptions, groupByState, groupByCounty, isOnlyUSA, isNotEmpty, parseRow} from './transformer';
 import { Checkbox } from './Checkbox';
 import { useFetchCSV } from './customHook';
 import { MultiSelect } from './MultiSelect';
 
-
-const selectWidth = 250;
 const widgetMarginLeft = 30;
 
 const titleByMetricId = {
@@ -37,14 +34,16 @@ export default function App() {
   const byCounty = groupByCounty(countyData);
 
   const selectCountry = R.pipe(
-    R.when(
-      R.isEmpty,
-      R.tap(() => {
-        setSelectedStateList([]);
-        setSelectedCountyList([]);
-      }),
-    ),
+    R.tap(() => {
+      setSelectedStateList([]);
+      setSelectedCountyList([]);
+    }),
     selectedList => setSelectedCountryList(selectedList)
+  );
+
+  const selectState = R.pipe(
+    R.tap(() => setSelectedCountyList([])),
+    selectedList => setSelectedStateList(selectedList)
   );
 
   return (
@@ -61,13 +60,7 @@ export default function App() {
         {isOnlyUSA(selectedCountryList) && (
           <MultiSelect
             options={makeOptions(byState)}
-            onChange={R.pipe(
-              R.when(
-                R.isEmpty,
-                R.tap(() => setSelectedCountyList([])),
-              ),
-              selectedList => setSelectedStateList(selectedList)
-            )}
+            onChange={selectState}
             placeholder="Select State"
             value={selectedStateList}
           />
@@ -78,9 +71,7 @@ export default function App() {
               R.filter(R.any(([date, county, state]) => R.includes(state)(R.pluck('value')(selectedStateList)))),
               makeCountyOptions,
             )(byCounty)}
-            onChange={R.pipe(
-              selectedList => setSelectedCountyList(selectedList)
-            )}
+            onChange={selectedList => setSelectedCountyList(selectedList)}
             placeholder="Select County"
             value={selectedCountyList}
           />
@@ -103,7 +94,7 @@ export default function App() {
         </div>
       </div>
 
-      { R.pipe(
+      {R.pipe(
         R.filter(R.equals(true)),
         R.keys,
         R.map(selectedMetric => {
