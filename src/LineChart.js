@@ -18,6 +18,11 @@ const defaultOptions = {
   },
   chart: {
     zoomType: 'xy',
+    resetZoomButton: {
+      position: {
+        align: 'left',
+      },
+    },
   }
 };
 
