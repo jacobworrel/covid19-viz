@@ -6,14 +6,8 @@ const defaultOptions = {
   credits: {
     enabled: false,
   },
-  plotOptions: {
-    series: {
-      label: {
-        connectorAllowed: false,
-      },
-    },
-  },
   chart: {
+    type: 'column',
     zoomType: 'xy',
     resetZoomButton: {
       position: {
@@ -23,7 +17,7 @@ const defaultOptions = {
   }
 };
 
-export function LineChart({title, data, categories}) {
+export function ColumnChart({title, data, categories}) {
   return (
     <HighchartsReact
       highcharts={Highcharts}

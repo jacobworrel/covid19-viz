@@ -86,3 +86,28 @@ export const parseRow = (row) => {
     deaths,
   }
 };
+
+const mapIndexed = R.addIndex(R.map);
+
+export const calcNew = R.map(
+  R.pipe(
+    ({ name, data }) => {
+      return {
+        name,
+        data: mapIndexed(
+          (x, idx) => {
+            const prev = R.defaultTo(0, data[idx - 1]);
+
+            return R.pipe(
+              R.subtract(R.__, prev),
+              R.when(
+                R.lt(R.__, 0),
+                R.always(0)
+              )
+            )(x);
+          }
+        )(data)
+      };
+    }
+  )
+);

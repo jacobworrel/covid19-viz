@@ -3,7 +3,8 @@ import * as R from 'ramda';
 import CounterInput from 'react-counter-input';
 import {LineChart} from './LineChart';
 import {calcGrowthRate} from './calc';
-import { isNotEmpty, isLength1 } from './transformer';
+import { isNotEmpty, isLength1, calcNew } from './transformer';
+import { ColumnChart } from './ColumnChart';
 
 export function Report ({ selectedPlaceList, data: { chartData, dateList } = {}, title }) {
   const [growthRange, setGrowthRange] = useState(2);
@@ -34,11 +35,16 @@ export function Report ({ selectedPlaceList, data: { chartData, dateList } = {},
           </div>
         </div>
       )}
-      <LineChart
-        title={title}
-        data={chartData}
-        categories={dateList}
-      />
+        <LineChart
+          title={`Total ${title}`}
+          data={chartData}
+          categories={dateList}
+        />
+        <ColumnChart
+          title={`New ${title}`}
+          data={calcNew(chartData)}
+          categories={dateList}
+        />
     </div>
   );
 }

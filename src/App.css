@@ -1,5 +1,5 @@
 .app {
-  margin: 50px;
+  padding: 30px;
 }
 
 .section {
@@ -7,7 +7,7 @@
 }
 
 .chart {
-  margin: 50px 0;
+  width: 100%;
 }
 
 .checkbox {

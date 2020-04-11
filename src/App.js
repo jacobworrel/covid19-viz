@@ -107,7 +107,7 @@ export default function App() {
             deaths: globalDeathsData,
           };
           return (
-            <React.Fragment>
+            <div key={selectedMetric} className="l-flexColumn l-vCenter">
               <Report
                 key={selectedMetric}
                 selectedMetric={selectedMetric}
@@ -185,7 +185,7 @@ export default function App() {
                   />
                 </div>
               )}
-            </React.Fragment>
+            </div>
           )
         })
       )(metricById)}
