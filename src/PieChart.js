@@ -15,7 +15,6 @@ const defaultOptions = {
   },
   chart: {
     type: 'pie',
-    zoomType: 'xy',
   }
 };
 

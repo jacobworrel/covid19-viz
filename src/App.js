@@ -159,7 +159,7 @@ export default function App() {
           selectedPlaceList={selectedPlaceList}
         />
         {isOnlyUSA(selectedCountryList) && (
-          <div className="l-flex l-hCenter">
+          <PieWrapper className="l-flex l-hCenter">
             <PieChart
               metricTitle={titleByMetricId[selectedMetric]}
               data={R.pipe(
@@ -175,7 +175,7 @@ export default function App() {
                 R.take(10),
               )(byState)}
             />
-          </div>
+          </PieWrapper>
         )}
       </ReportWrapper>
     </div>
@@ -185,4 +185,8 @@ export default function App() {
 const ReportWrapper = styled.div`
   border: 1px solid #E2E2E2;
   padding: 30px;
+`;
+
+const PieWrapper = styled.div`
+  width: 100%;
 `;

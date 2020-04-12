@@ -92,11 +92,16 @@ const mapIndexed = R.addIndex(R.map);
 export const calcNew = R.map(
   R.pipe(
     ({ name, data }) => {
+      console.log('DATA', data)
       return {
         name,
         data: mapIndexed(
           (x, idx) => {
-            const prev = R.defaultTo(0, data[idx - 1]);
+            const prev = data[idx - 1];
+
+            if (R.isNil(prev)) {
+              return 0;
+            }
 
             return R.pipe(
               R.subtract(R.__, prev),

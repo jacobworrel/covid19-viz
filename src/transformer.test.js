@@ -50,8 +50,8 @@ describe(`transformer`, () => {
       ];
 
       expect(calcNew(data)).toEqual([
-        { data: [1, 1, 1, 1, 1], name: 'Foo' },
-        { data: [1, 2, 0, 9, 0], name: 'Bar' },
+        { data: [0, 1, 1, 1, 1], name: 'Foo' },
+        { data: [0, 2, 0, 9, 0], name: 'Bar' },
       ])
     });
   });
