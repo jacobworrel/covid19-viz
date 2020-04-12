@@ -4,11 +4,9 @@ import * as R from 'ramda';
 import {TimeSeriesReport} from './TimeSeriesReport';
 import {PieChart} from './PieChart';
 import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeOptions, makeCountyOptions, groupByState, groupByCounty, isOnlyUSA, isNotEmpty, parseRow} from './transformer';
-import { Checkbox } from './Checkbox';
+import { Tab } from './Tab';
 import { useFetchCSV } from './customHook';
 import { MultiSelect } from './MultiSelect';
-
-const widgetMarginLeft = 30;
 
 const titleByMetricId = {
   cases: 'Confirmed Cases',
@@ -16,7 +14,7 @@ const titleByMetricId = {
 };
 
 export default function App() {
-  const [metricById, setMetricById] = useState({ cases: true, deaths: false });
+  const [selectedMetric, setSelectedMetric] = useState('cases');
 
   // GLOBAL
   const [selectedCountryList, setSelectedCountryList] = useState([makeSelectOption('US')]);
@@ -45,6 +43,15 @@ export default function App() {
     R.tap(() => setSelectedCountyList([])),
     selectedList => setSelectedStateList(selectedList)
   );
+
+  const isCountyListNotEmpty = isNotEmpty(selectedCountyList);
+  const isStateListNotEmpty = isNotEmpty(selectedStateList);
+  const selectedPlaceList = isCountyListNotEmpty ? selectedCountyList : isStateListNotEmpty ? selectedStateList : selectedCountryList;
+  const byPlace = isCountyListNotEmpty ? byCounty : isStateListNotEmpty ? byState : null;
+  const globalData = {
+    cases: globalCasesData,
+    deaths: globalDeathsData,
+  };
 
   return (
     <div className="app l-column">
@@ -75,119 +82,101 @@ export default function App() {
             value={selectedCountyList}
           />
         )}
-        <div className="l-flex" style={{ marginLeft: widgetMarginLeft }}>
-          {R.pipe(
-            R.keys,
-            R.map(
-              metricId => (
-                <Checkbox
-                  key={metricId}
-                  id={metricId}
-                  name={titleByMetricId[metricId]}
-                  isChecked={metricById[metricId]}
-                  onChange={() => setMetricById((prevMetricById => ({ ...prevMetricById, [metricId]: !prevMetricById[metricId] })))}
-                />
-              )
-            )
-          )(metricById)}
-        </div>
       </div>
 
-      {R.pipe(
-        R.filter(R.equals(true)),
-        R.keys,
-        R.map(selectedMetric => {
-          const isCountyListNotEmpty = isNotEmpty(selectedCountyList);
-          const isStateListNotEmpty = isNotEmpty(selectedStateList);
-          const selectedPlaceList = isCountyListNotEmpty ? selectedCountyList : isStateListNotEmpty ? selectedStateList : selectedCountryList;
-          const byPlace = isCountyListNotEmpty ? byCounty : isStateListNotEmpty ? byState : null;
-          const globalData = {
-            cases: globalCasesData,
-            deaths: globalDeathsData,
-          };
-          return (
-            <div key={selectedMetric} className="l-flexColumn l-vCenter">
-              <TimeSeriesReport
-                key={selectedMetric}
-                selectedMetric={selectedMetric}
-                data={R.pipe(
-                  R.ifElse(
-                    R.isNil,
-                    () => {
-                      const data = globalData[selectedMetric];
+      <div className="l-flex">
+        <Tab
+          id="cases"
+          name={titleByMetricId.cases}
+          onClick={() => setSelectedMetric('cases')}
+          selectedMetric={selectedMetric}
+        />
+        <Tab
+          id="deaths"
+          name={titleByMetricId.deaths}
+          onClick={() => setSelectedMetric('deaths')}
+          selectedMetric={selectedMetric}
+        />
+      </div>
+
+      <div key={selectedMetric} className="l-flexColumn l-vCenter">
+        <TimeSeriesReport
+          selectedMetric={selectedMetric}
+          data={R.pipe(
+            R.ifElse(
+              R.isNil,
+              () => {
+                const data = globalData[selectedMetric];
+                return {
+                  chartData: makeLineChartData({ data, selectedRegionList: selectedCountryList }),
+                  dateList: makeDateList(data),
+                }
+              },
+              R.pipe(
+                byPlace => {
+                  const data = R.pipe(
+                    R.pickBy((val, key) => R.includes(key)(R.pluck('value')(selectedPlaceList))),
+                    R.values,
+                    R.map(x => R.map(parseRow)(x))
+                  )(byPlace);
+                  const dateList = R.pipe(R.reduce(R.maxBy(R.length), []), R.pluck('date'))(data);
+                  const dateListLength = R.length(dateList);
+                  const chartData = R.map(
+                    x => {
+                      const name = R.pipe(
+                        R.head,
+                        R.defaultTo({}),
+                        R.prop('place')
+                      )(x);
                       return {
-                        chartData: makeLineChartData({ data, selectedRegionList: selectedCountryList }),
-                        dateList: makeDateList(data),
-                      }
-                    },
-                    R.pipe(
-                      byPlace => {
-                        const data = R.pipe(
-                          R.pickBy((val, key) => R.includes(key)(R.pluck('value')(selectedPlaceList))),
-                          R.values,
-                          R.map(x => R.map(parseRow)(x))
-                        )(byPlace);
-                        const dateList = R.pipe(R.reduce(R.maxBy(R.length), []), R.pluck('date'))(data);
-                        const dateListLength = R.length(dateList);
-                        const chartData = R.map(
-                          x => {
-                            const name = R.pipe(
-                              R.head,
-                              R.defaultTo({}),
-                              R.prop('place')
-                            )(x);
-                            return {
-                              data: R.pipe(
-                                R.when(
-                                  R.pipe(
-                                    R.length,
-                                    R.lt(R.__, dateListLength),
-                                  ),
-                                  list => {
-                                    const diff = dateListLength - R.length(list);
-                                    return R.concat(R.times(R.always(0))(diff), list);
-                                  }
-                                ),
-                                R.pluck(selectedMetric), R.map(parseInt)
-                              )(x),
-                              name,
-                            };
-                          }
-                        )(data);
-                        return {
-                          chartData,
-                          dateList,
-                        }
-                      }
-                    )
-                  ),
-                )(byPlace)}
-                title={titleByMetricId[selectedMetric]}
-                selectedPlaceList={selectedPlaceList}
-              />
-              {isOnlyUSA(selectedCountryList) && (
-                <div className="l-flex l-hCenter">
-                  <PieChart
-                    metricTitle={titleByMetricId[selectedMetric]}
-                    data={R.pipe(
-                      R.map(
-                        R.pipe(
-                          R.last,
-                          ([date, state, fips, cases, deaths]) => ({ state, cases, deaths }),
-                          (x) => ({ name: x.state, y: parseInt(x[selectedMetric]) })
-                        )
-                      ),
-                      R.values,
-                      R.sort(R.descend(R.prop('y'))),
-                      R.take(10),
-                    )(byState)}
-                  />
-                </div>
-              )}
-            </div>
-          )
-        })
-      )(metricById)}
+                        data: R.pipe(
+                          R.when(
+                            R.pipe(
+                              R.length,
+                              R.lt(R.__, dateListLength),
+                            ),
+                            list => {
+                              const diff = dateListLength - R.length(list);
+                              return R.concat(R.times(R.always(0))(diff), list);
+                            }
+                          ),
+                          R.pluck(selectedMetric), R.map(parseInt)
+                        )(x),
+                        name,
+                      };
+                    }
+                  )(data);
+                  return {
+                    chartData,
+                    dateList,
+                  }
+                }
+              )
+            ),
+          )(byPlace)}
+          title={titleByMetricId[selectedMetric]}
+          selectedPlaceList={selectedPlaceList}
+        />
+        {isOnlyUSA(selectedCountryList) && (
+          <div className="l-flex l-hCenter">
+            <PieChart
+              metricTitle={titleByMetricId[selectedMetric]}
+              data={R.pipe(
+                R.map(
+                  R.pipe(
+                    R.last,
+                    ([date, state, fips, cases, deaths]) => ({ state, cases, deaths }),
+                    (x) => ({ name: x.state, y: parseInt(x[selectedMetric]) })
+                  )
+                ),
+                R.values,
+                R.sort(R.descend(R.prop('y'))),
+                R.take(10),
+              )(byState)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

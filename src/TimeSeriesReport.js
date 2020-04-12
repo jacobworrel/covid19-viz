@@ -39,7 +39,6 @@ export function TimeSeriesReport ({ selectedPlaceList, data: { chartData, dateLi
   )(chartData);
   return (
     <div className="chart">
-      <h2>{title}</h2>
       <div className="l-flex">
         <label>Time Range:</label>
         {R.pipe(
