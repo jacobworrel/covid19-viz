@@ -7,6 +7,7 @@ import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeO
 import { Tab } from './Tab';
 import { useFetchCSV } from './customHook';
 import { MultiSelect } from './MultiSelect';
+import styled from 'styled-components';
 
 const titleByMetricId = {
   cases: 'Confirmed Cases',
@@ -99,7 +100,7 @@ export default function App() {
         />
       </div>
 
-      <div key={selectedMetric} className="l-flexColumn l-vCenter">
+      <ReportWrapper key={selectedMetric} className="l-flexColumn l-vCenter">
         <TimeSeriesReport
           selectedMetric={selectedMetric}
           data={R.pipe(
@@ -176,8 +177,12 @@ export default function App() {
             />
           </div>
         )}
-      </div>
+      </ReportWrapper>
     </div>
   );
 }
 
+const ReportWrapper = styled.div`
+  border: 1px solid #E2E2E2;
+  padding: 30px;
+`;

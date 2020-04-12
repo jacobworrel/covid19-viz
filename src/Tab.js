@@ -1,16 +1,23 @@
 import React from 'react';
+import styled from 'styled-components';
 
 export function Tab ({ id, name, selectedMetric, onClick }) {
   return (
-    <div
+    <Wrapper
       onClick={onClick}
-      style={{
-        color: selectedMetric === id ? 'black' : 'lightgrey',
-        cursor: 'pointer',
-        marginRight: 20,
-      }}
+      selectedMetric={selectedMetric}
+      id={id}
+      className="l-center"
     >
       {name}
-    </div>
+    </Wrapper>
   );
 }
+
+const Wrapper = styled.div`
+  color: ${({ selectedMetric, id}) => selectedMetric === id ? 'white' : 'black'};
+  background-color: ${({ selectedMetric, id}) => selectedMetric === id ? 'dodgerblue' : '#E2E2E2'};
+  cursor: pointer;
+  width: 150px;
+  height: 40px;
+`;
