@@ -29,7 +29,7 @@ export function ColumnChart({title, data, categories}) {
         },
         yAxis: {
           title: {
-            text: title,
+            text: '',
           },
         },
         title: {

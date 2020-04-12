@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './App.css';
 import * as R from 'ramda';
-import {Report} from './Report';
+import {TimeSeriesReport} from './TimeSeriesReport';
 import {PieChart} from './PieChart';
 import {makeDateList, makeRegionList, makeLineChartData, makeSelectOption, makeOptions, makeCountyOptions, groupByState, groupByCounty, isOnlyUSA, isNotEmpty, parseRow} from './transformer';
 import { Checkbox } from './Checkbox';
@@ -49,7 +49,6 @@ export default function App() {
   return (
     <div className="app l-column">
       <h1 className="section l-center">COVID-19 Data Explorer</h1>
-      {/*<p className="l-center" style={{ fontSize: 100, margin: 0 }}>&#128567;</p>*/}
       <div className="section l-center widget">
         <MultiSelect
           options={makeRegionList(globalCasesData)}
@@ -108,7 +107,7 @@ export default function App() {
           };
           return (
             <div key={selectedMetric} className="l-flexColumn l-vCenter">
-              <Report
+              <TimeSeriesReport
                 key={selectedMetric}
                 selectedMetric={selectedMetric}
                 data={R.pipe(

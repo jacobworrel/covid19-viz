@@ -35,7 +35,7 @@ export function LineChart({title, data, categories}) {
         },
         yAxis: {
           title: {
-            text: title,
+            text: '',
           },
         },
         title: {
